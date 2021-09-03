@@ -217,17 +217,21 @@ export function renderMarkdown(markdown: IMarkdownString, options: MarkdownRende
 		}));
 	}
 
-	// Use our own sanitizer so that we can let through only spans.
-	// Otherwise, we'd be letting all html be rendered.
-	// If we want to allow markdown permitted tags, then we can delete sanitizer and sanitize.
-	// We always pass the output through insane after this so that we don't rely on
-	// marked for sanitization.
-	markedOptions.sanitizer = (html: string): string => {
-		const match = markdown.isTrusted ? html.match(/^(<span[^>]+>)|(<\/\s*span>)$/) : undefined;
-		return match ? html : '';
-	};
-	markedOptions.sanitize = true;
-	markedOptions.silent = true;
+	if (!markdown.supportHtml) {
+		// TODO: Can we deprecated this in favor of 'supportHtml'?
+
+		// Use our own sanitizer so that we can let through only spans.
+		// Otherwise, we'd be letting all html be rendered.
+		// If we want to allow markdown permitted tags, then we can delete sanitizer and sanitize.
+		// We always pass the output through insane after this so that we don't rely on
+		// marked for sanitization.
+		markedOptions.sanitizer = (html: string): string => {
+			const match = markdown.isTrusted ? html.match(/^(<span[^>]+>)|(<\/\s*span>)$/) : undefined;
+			return match ? html : '';
+		};
+		markedOptions.sanitize = true;
+		markedOptions.silent = true;
+	}
 
 	markedOptions.renderer = renderer;
 
@@ -293,7 +297,7 @@ function getInsaneOptions(options: { readonly isTrusted?: boolean }): InsaneOpti
 		// Since we have our own sanitize function for marked, it's possible we missed some tag so let insane make sure.
 		// HTML tags that can result from markdown are from reading https://spec.commonmark.org/0.29/
 		// HTML table tags that can result from markdown are from https://github.github.com/gfm/#tables-extension-
-		allowedTags: ['ul', 'li', 'p', 'code', 'blockquote', 'ol', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'hr', 'em', 'pre', 'table', 'thead', 'tbody', 'tr', 'th', 'td', 'div', 'del', 'a', 'strong', 'br', 'img', 'span'],
+		allowedTags: ['ul', 'li', 'p', 'code', 'blockquote', 'ol', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'hr', 'em', 'pre', 'table', 'thead', 'tbody', 'tr', 'th', 'td', 'div', 'del', 'a', 'b', 'i', 'strong', 'br', 'img', 'span'],
 		allowedAttributes: {
 			'a': ['href', 'name', 'target', 'data-href'],
 			'img': ['src', 'title', 'alt', 'width', 'height'],
